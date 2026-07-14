@@ -1,6 +1,6 @@
 # ------------------------------------------------------------------------------------------------ #
 # Copyright (c) 2026 Carmenda. All rights reserved.                                                #
-# This program is distributed under the terms of the GNU General Public License: GPL-3.0-or-later  #
+# This program is distributed under the terms of the PolyForm Noncommercial License 1.0.0          #
 # ------------------------------------------------------------------------------------------------ #
 
 FROM python:3.9-slim
@@ -31,6 +31,6 @@ RUN mkdir -p /app/data/output
 ENV DOCKER_ENV=true
 ENV HOST=0.0.0.0
 
-EXPOSE 8001
+EXPOSE 8002
 
 CMD ["python", "run.py"]
