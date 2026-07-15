@@ -71,6 +71,10 @@ directory = 'pytest/html'
 [tool.coverage.xml]
 output = 'pytest/coverage.xml'
 
+[[tool.mypy.overrides]]
+module = 'deidentify.*'
+ignore_missing_imports = true
+
 [tool.pytest.ini_options]
 python_files = ['tests.py', 'test_*.py', '*_tests.py']
 cache_dir = 'pytest/.pytest_cache'
