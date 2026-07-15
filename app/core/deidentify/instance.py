@@ -8,17 +8,12 @@
 from __future__ import annotations
 
 import sys
-import warnings
+
+from deidentify.taggers import FlairTagger
+from deidentify.tokenizer import TokenizerFactory
 
 from core.utils.logger import setup_logging
 from main.config import settings
-
-with warnings.catch_warnings():
-    warnings.simplefilter('ignore', category=FutureWarning)
-    warnings.simplefilter('ignore', category=UserWarning)
-
-    from deidentify.taggers import FlairTagger
-    from deidentify.tokenizer import TokenizerFactory
 
 logger = setup_logging()
 

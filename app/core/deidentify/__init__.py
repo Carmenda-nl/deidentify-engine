@@ -4,3 +4,9 @@
 # ------------------------------------------------------------------------------------------------ #
 
 """Deidentify subpackage for de-identification of medical text."""
+
+import warnings
+
+# Silence Deidentify pandas chained-assignment FutureWarning on import.
+warnings.filterwarnings('ignore', category=FutureWarning)
+warnings.filterwarnings('ignore', category=UserWarning)
