@@ -41,11 +41,15 @@ def colorize_tags(text: str) -> str:
     }
 
     text = re.sub(r'\[PATIENT\]', f'{colors["red"]}[PATIENT]{colors["reset"]}', text)
-    text = re.sub(r'\[PERSOON-(\d+)\]', f'{colors["yellow"]}[PERSOON-\\1]{colors["reset"]}', text)
-    text = re.sub(r'\[(DATUM|DATE)-(\d+)\]', f'{colors["green"]}[\\1-\\2]{colors["reset"]}', text)
-    text = re.sub(r'\[(LOCATIE|LOCATION|PLAATS)-(\d+)\]', f'{colors["blue"]}[\\1-\\2]{colors["reset"]}', text)
+    text = re.sub(r'\[(NAME|INITIALS)\]', f'{colors["yellow"]}[\\1]{colors["reset"]}', text)
+    text = re.sub(r'\[DATE\]', f'{colors["green"]}[DATE]{colors["reset"]}', text)
+    text = re.sub(
+        r'\[(ADDRESS|INTERNAL_LOCATION|HOSPITAL|CARE_INSTITUTE|ORGANIZATION_COMPANY)\]',
+        f'{colors["blue"]}[\\1]{colors["reset"]}',
+        text,
+    )
 
-    return re.sub(r'\[(TELEFOON|PHONE|EMAIL|BSN)-(\d+)\]', f'{colors["magenta"]}[\\1-\\2]{colors["reset"]}', text)
+    return re.sub(r'\[(PHONE_FAX|EMAIL|SSN|ID|URL_IP)\]', f'{colors["magenta"]}[\\1]{colors["reset"]}', text)
 
 
 # Counter storage for log block
