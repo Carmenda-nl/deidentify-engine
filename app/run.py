@@ -3,60 +3,67 @@
 # This program is distributed under the terms of the GNU General Public License: GPL-3.0-or-later  #
 # ------------------------------------------------------------------------------------------------ #
 
-"""Test script to run deidentify."""
+"""FastAPI base and Swagger config."""
 
-import warnings
+import logging
+import shutil
+import tempfile
+from collections.abc import AsyncGenerator
+from contextlib import asynccontextmanager
+from pathlib import Path
 
-warnings.filterwarnings('ignore', category=FutureWarning)
-warnings.filterwarnings('ignore', category=UserWarning)
+import anyio
+import uvicorn
+from fastapi import FastAPI
 
-from pprint import pprint  # noqa: E402
+from api import router
+from api.utils.worker import shutdown_worker
+from core.utils.logger import setup_logging
+from main._version import __version__ as app_version
+from main.config import settings
 
-from deidentify.base import Document  # noqa: E402
-from deidentify.taggers import FlairTagger  # noqa: E402
-from deidentify.tokenizer import TokenizerFactory  # noqa: E402
-from deidentify.util import mask_annotations  # noqa: E402
+logger = setup_logging()
 
-# Create some text
-text = (
-    'Dit is stukje tekst met daarin de naam Jan Jansen. De patient J. Jansen (e: '
-    'j.jnsen@email.com, t: 06-12345678) is 64 jaar oud en woonachtig in Utrecht. Hij werd op 10 '
-    'oktober door arts Peter de Visser ontslagen van de kliniek van het UMCU.'
+
+@asynccontextmanager
+async def lifespan(_: FastAPI) -> AsyncGenerator[None]:
+    """Build data folders at startup; on shutdown, properly cancel any running process."""
+    logger.handlers = logging.getLogger('uvicorn').handlers
+    logger.propagate = False
+
+    if settings.m2m_hash:
+        logger.info('Starting in Gateway mode: M2M secret configured')
+    else:
+        logger.warning('Starting in Standalone mode: no M2M secret set')
+        await anyio.Path(settings.input_folder).mkdir(parents=True, exist_ok=True)
+        await anyio.Path(settings.output_folder).mkdir(parents=True, exist_ok=True)
+
+    temp_root = Path(tempfile.gettempdir()) / 'Carmenda'
+    shutil.rmtree(temp_root, ignore_errors=True)
+
+    yield
+    shutdown_worker()
+
+
+app = FastAPI(
+    title=settings.app_title,
+    version=app_version,
+    lifespan=lifespan,
+    swagger_ui_parameters={'defaultModelsExpandDepth': -1},
+    docs_url='/docs' if settings.debug else None,
+    openapi_url='/openapi.json' if settings.debug else None,
+    redoc_url=None,
+    openapi_tags=[{'name': 'Info'}, {'name': 'Process engine'}, {'name': 'Output'}],
 )
 
-# Wrap text in document
-documents = [Document(name='doc_01', text=text)]
-
-# Select downloaded model
-model = 'model_bilstmcrf_ons_fast-v0.2.0'
-
-# Instantiate tokenizer
-tokenizer = TokenizerFactory().tokenizer(corpus='ons', disable=('tagger', 'ner'))
-
-# Load tagger with a downloaded model file and tokenizer
-tagger = FlairTagger(model=model, tokenizer=tokenizer, verbose=False)
-
-print('')
-print('*' * 80)
-print(tagger.tags)
-print('*' * 80)
-print('')
-
-# Annotate your documents
-annotated_docs = tagger.annotate(documents)
-
-
-def main() -> None:
-    """Run deidentify test."""
-    print(documents)
-
-    first_doc = annotated_docs[0]
-    pprint(first_doc.annotations)
-
-    # Mask annotations in the first document
-    masked_doc = mask_annotations(first_doc)
-    print('\nMasked text:\n', masked_doc.text)
-
+app.include_router(router)
 
 if __name__ == '__main__':
-    main()
+    uvicorn.run(
+        app if settings.environment == 'frozen' else 'run:app',
+        reload=settings.debug and settings.environment == 'development',
+        reload_dirs=[str(Path(__file__).parent)] if settings.debug and settings.environment == 'development' else None,
+        host=settings.host,
+        port=settings.port,
+        log_level=settings.log_level.lower(),
+    )
