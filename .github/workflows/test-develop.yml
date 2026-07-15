@@ -1,0 +1,24 @@
+# GitHub Actions workflow
+# This workflow includes jobs for linting, type checking, and testing the Python codebase.
+# A coverage report will be uploaded as an artifact after tests run.
+#
+# Triggered on:
+#   - PUSH to develop branch
+#   - PULL REQUESTS targeting the develop branch
+
+name: Tests
+
+on:
+  push:
+    branches:
+      - develop
+  pull_request:
+    branches:
+      - develop
+    types: [opened, synchronize]
+
+jobs:
+  tests:
+    uses: Carmenda-nl/carmenda-workflows/.github/workflows/python-tests.yml@main
+    with:
+      working-directory: app
