@@ -11,8 +11,8 @@ import logging
 from pathlib import Path
 
 import polars as pl
-import pytest
 
+import pytest
 from core.utils.file_handling import save_datafile, save_datakey
 
 # ----------------------------------- FIXTURES ------------------------------------ #

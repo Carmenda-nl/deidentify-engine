@@ -9,19 +9,12 @@ For complete results, run with arguments.
 `pytest -s -v`
 """
 
-import sys
-from pathlib import Path
-
 import polars as pl
 
-from core.deidentify import DeidentifyHandler
+from core.deidentify.handler import DeidentifyHandler
 from core.utils.logger import setup_test_logging
 from core.utils.progress_tracker import ProgressTracker
 from core.utils.terminal import get_separator_line
-
-# Add the source directory to the Python path
-source_dir = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(source_dir))
 
 
 def test_name_detection_pipeline() -> None:
@@ -68,15 +61,6 @@ def test_name_detection_pipeline() -> None:
         logger.info('  Client:  Client name: %s (%s)', row['clientname'], row['client_initials'])
         logger.info("  Input:   '%s'", row['report'])
         logger.info("  Output:  '%s'\n", row['processed_report_1'])
-
-        # Show what the detector alone would find for comparison
-        custom_annotations = handler.name_detection.names_case_insensitive(row['report'])
-        if custom_annotations:
-            logger.info('  Detector found:')
-            for ann in custom_annotations:
-                logger.info("    '%s' at %d-%d (confidence: %.2f)", ann.text, ann.start, ann.end, ann.confidence)
-        else:
-            logger.info('    Detector found no additional names')
 
     logger.info('\n%s', get_separator_line())
 

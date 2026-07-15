@@ -21,7 +21,7 @@ from typing import Any
 import polars as pl
 
 from core.datakey import process_datakey
-from core.deidentify import DeidentifyHandler
+from core.deidentify.handler import DeidentifyHandler
 from core.utils.file_handling import load_datafile, save_datafile, save_datakey
 from core.utils.logger import setup_logging
 from core.utils.progress_tracker import ProgressTracker, performance_metrics
