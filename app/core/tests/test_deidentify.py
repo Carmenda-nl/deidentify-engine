@@ -11,28 +11,21 @@ For complete results, run with arguments.
 
 from __future__ import annotations
 
-import warnings
 from pprint import pformat
 from textwrap import indent
 from typing import TYPE_CHECKING
 
 import pytest
+from deidentify.base import Document
+from deidentify.util import mask_annotations
+
+from core.deidentify.instance import DeidentifyInstanceManager
 from core.utils.logger import setup_test_logging
 from core.utils.terminal import get_separator_line
 
-with warnings.catch_warnings():
-    warnings.simplefilter('ignore', category=FutureWarning)
-    warnings.simplefilter('ignore', category=UserWarning)
-
-    from deidentify.base import Document
-    from deidentify.taggers import FlairTagger
-    from deidentify.tokenizer import TokenizerFactory
-    from deidentify.util import mask_annotations
-
 if TYPE_CHECKING:
     from deidentify.base import Document as DocumentType
-
-MODEL_NAME = 'model_bilstmcrf_ons_fast-v0.2.0'
+    from deidentify.taggers import FlairTagger
 
 TEXT = (
     'Dit is stukje tekst met daarin de naam Jan Jansen. De patient J. Jansen (e: '
@@ -43,9 +36,8 @@ TEXT = (
 
 @pytest.fixture(scope='module')
 def tagger() -> FlairTagger:
-    """Load the Flair tagger with the ONS tokenizer once for all tests in this module."""
-    tokenizer = TokenizerFactory().tokenizer(corpus='ons', disable=('tagger', 'ner'))
-    return FlairTagger(model=MODEL_NAME, tokenizer=tokenizer, verbose=False)
+    """Load the Flair tagger once for all tests in this module."""
+    return DeidentifyInstanceManager().create_instance()
 
 
 @pytest.fixture
