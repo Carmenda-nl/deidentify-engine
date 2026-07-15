@@ -13,7 +13,7 @@ from functools import reduce
 from typing import TYPE_CHECKING
 
 import polars as pl
-from deidentify.base import Document
+from deidentify.base import Annotation, Document
 from deidentify.util import mask_annotations
 
 from core.deidentify.instance import DeidentifyInstanceManager
@@ -95,7 +95,7 @@ class DeidentifyHandler:
     def _mask_document(self, annotated_doc: Document, clientname: str | None) -> str:
         """Mask PHI in a single annotated document, using [PATIENT] for the client's own name."""
 
-        def replacement_formatter(annotation: object) -> str:
+        def replacement_formatter(annotation: Annotation) -> str:
             if annotation.tag == 'Name' and self._is_patient_name(annotation.text, clientname):
                 return '[PATIENT]'
             return f'[{annotation.tag.upper()}]'
