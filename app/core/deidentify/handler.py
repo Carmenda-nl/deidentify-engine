@@ -14,6 +14,7 @@ from typing import TYPE_CHECKING
 
 import polars as pl
 
+from core.deidentify.instance import DeidentifyInstanceManager
 from core.utils.logger import setup_logging
 from core.utils.terminal import colorize_tags, log_block
 
@@ -25,7 +26,7 @@ if TYPE_CHECKING:
 
 logger = setup_logging()
 
-DEIDENTIFY_MODEL = 'model_bilstmcrf_ons_fast-v0.2.0'
+instance_manager = DeidentifyInstanceManager()
 
 # Matches FlairTagger's default mini_batch_size, so each chunk maps to one Flair inference batch
 # and progress can be reported after every chunk instead of only once per (much larger) df slice.
@@ -38,8 +39,6 @@ class DeidentifyHandler:
     def __init__(self, tracker: ProgressTracker) -> None:
         """Initialize the handler. The deidentify tagger is loaded lazily on first use."""
         self.tracker = tracker
-
-        self.tracker.set_progress('init_names')
 
         # Lazily loaded/cached FlairTagger, see `_get_tagger`.
         self._tagger: FlairTagger | None = None
@@ -75,27 +74,16 @@ class DeidentifyHandler:
         ]
         return df.with_columns(replaced_synonyms)
 
-
-
-
-
     def _get_tagger(self) -> FlairTagger:
-        """Lazily load and cache the FlairTagger. Loading the model is expensive, so this must
-        only happen once per handler instance, not once per report.
-        """
+        """Lazily fetch the shared FlairTagger, loaded once per worker process."""
         if self._tagger is None:
-            from deidentify.taggers import FlairTagger
-            from deidentify.tokenizer import TokenizerFactory
-
-            tokenizer = TokenizerFactory().tokenizer(corpus='ons', disable=('tagger', 'ner'))
-            self._tagger = FlairTagger(model=DEIDENTIFY_MODEL, tokenizer=tokenizer, verbose=False)
+            self.tracker.set_progress('init_model')
+            self._tagger = instance_manager.create_instance()
 
         return self._tagger
 
     def _is_patient_name(self, annotation_text: str, clientname: str | None) -> bool:
-        """Check whether a `Name` annotation refers to the client/patient rather than someone
-        else mentioned in the report (e.g. a relative or clinician).
-        """
+        """Check whether a `Name` annotation refers to the client rather than someone else mentioned in the report."""
         if not clientname:
             return False
 
@@ -117,7 +105,7 @@ class DeidentifyHandler:
         def _replacement_formatter(annotation: object) -> str:
             if annotation.tag == 'Name' and self._is_patient_name(annotation.text, clientname):
                 return '[PATIENT]'
-            return '[{}]'.format(annotation.tag.upper())
+            return f'[{annotation.tag.upper()}]'
 
         return mask_annotations(annotated_doc, replacement_formatter=_replacement_formatter).text
 
@@ -129,7 +117,7 @@ class DeidentifyHandler:
         for chunk_start in range(0, len(rows), PROGRESS_CHUNK_SIZE):
             self.tracker.check_cancelled()
 
-            chunk = list(enumerate(rows[chunk_start:chunk_start + PROGRESS_CHUNK_SIZE], start=chunk_start))
+            chunk = list(enumerate(rows[chunk_start : chunk_start + PROGRESS_CHUNK_SIZE], start=chunk_start))
             report_texts = {index: (row.get('report') or '') for index, row in chunk}
             clientnames = {index: (row.get('clientname') or None) for index, row in chunk}
 
@@ -142,10 +130,12 @@ class DeidentifyHandler:
 
                 if logger.level == logging.DEBUG:
                     self.total_processed += 1
-                    self.processed_reports.append({
-                        'report': report_texts[row_index],
-                        'deidentify': results[row_index],
-                    })
+                    self.processed_reports.append(
+                        {
+                            'report': report_texts[row_index],
+                            'deidentify': results[row_index],
+                        }
+                    )
 
             self.processed_count += len(chunk)
             step_progress = (self.processed_count / self.total_count) * 100
