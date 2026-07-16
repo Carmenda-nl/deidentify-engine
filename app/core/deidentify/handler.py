@@ -108,7 +108,7 @@ class DeidentifyHandler:
         results = ['' for _ in rows]
 
         # Progress can be reported after every chunk instead of only once per (much larger) df slice.
-        progress_chunk_size = 256
+        progress_chunk_size = 32
 
         for chunk_start in range(0, len(rows), progress_chunk_size):
             self.tracker.check_cancelled()
