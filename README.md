@@ -169,6 +169,7 @@ LOG_LEVEL=INFO
 HOST=127.0.0.1
 PORT=8002
 M2M_HASH=
+DEIDENTIFY_MODEL=model_bilstmcrf_ons_fast-v0.2.0
 ```
 
 > **Note:** Set `DEBUG=True` to enable the Swagger UI at `/docs`.
@@ -178,6 +179,9 @@ M2M_HASH=
 > disabled. Set it (matching the gateway's `ENGINE_M2M_HASH`) to run behind the gateway:
 > the gateway then owns file I/O, and every request must carry a matching `X-M2M-Key`
 > header or it is rejected with `401`. The active mode is logged at startup.
+
+> **Note:** `DEIDENTIFY_MODEL` selects the Deidentify model tag to load. Defaults to
+> `model_bilstmcrf_ons_fast-v0.2.0`.
 
 ### Step 4: Run the Server
 
