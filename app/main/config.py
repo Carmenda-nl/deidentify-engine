@@ -37,6 +37,7 @@ class Settings(BaseSettings):
     m2m_hash: str = ''
     input_folder: str = input_folder
     output_folder: str = output_folder
+    deidentify_model: str = 'model_bilstmcrf_ons_fast-v0.2.0'
     model_config = SettingsConfigDict(env_file=env_file)
 
 
