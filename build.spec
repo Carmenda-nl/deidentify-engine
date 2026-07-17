@@ -5,7 +5,7 @@ import sys
 import sysconfig
 from pathlib import Path
 
-from PyInstaller.utils.hooks import collect_all, copy_metadata
+from PyInstaller.utils.hooks import collect_all, collect_data_files, copy_metadata
 
 sys.path.insert(0, str(Path(SPECPATH) / 'app'))
 from main._version import __version__
@@ -19,7 +19,6 @@ windows = sys.platform == 'win32'
 app_path = Path(SPECPATH) / 'app'
 
 datas = []
-datas += copy_metadata('deduce')
 datas += copy_metadata('fastapi')
 datas += copy_metadata('uvicorn')
 datas += copy_metadata('pydantic')
@@ -38,10 +37,6 @@ excluded_items = {
     'pyproject.toml',
     'Makefile',
 }
-
-env_file = app_path / '.env'
-if env_file.exists():
-    datas.append((str(env_file), 'app'))
 
 for root, dirs, files in os.walk(app_path):
     dirs[:] = [directory for directory in dirs if directory not in excluded_items and not directory.startswith('.')]
@@ -72,8 +67,6 @@ if windows:
 
 hiddenimports = ['_ssl', '_hashlib']
 
-tmp_ret = collect_all('deduce')
-datas += tmp_ret[0]; binaries += tmp_ret[1]; hiddenimports += tmp_ret[2]
 tmp_ret = collect_all('polars')
 datas += tmp_ret[0]; binaries += tmp_ret[1]; hiddenimports += tmp_ret[2]
 tmp_ret = collect_all('fastapi')
@@ -88,6 +81,18 @@ tmp_ret = collect_all('pydantic_settings')
 datas += tmp_ret[0]; binaries += tmp_ret[1]; hiddenimports += tmp_ret[2]
 tmp_ret = collect_all('anyio')
 datas += tmp_ret[0]; binaries += tmp_ret[1]; hiddenimports += tmp_ret[2]
+
+# Collect Deidentify needed data files
+datas += collect_data_files('deidentify')
+datas += collect_data_files('deduce')
+
+for pkg in ['spacy', 'thinc', 'cymem', 'preshed', 'murmurhash', 'srsly', 'blis', 'wasabi', 'catalogue', 'plac']:
+    tmp_ret = collect_all(pkg)
+    datas += tmp_ret[0]; binaries += tmp_ret[1]; hiddenimports += tmp_ret[2]
+
+tmp_ret = collect_all('nl_core_news_sm')
+datas += tmp_ret[0]; binaries += tmp_ret[1]; hiddenimports += tmp_ret[2]
+datas += copy_metadata('nl_core_news_sm')
 
 a = Analysis(
     [str(app_path / 'run.py')],
@@ -108,9 +113,6 @@ a = Analysis(
         'notebook',
         'tkinter',
         'Tkinter',
-        'pdb',
-        'matplotlib',
-        'pylab',
     ],
     noarchive=False,
     optimize=1,
@@ -143,7 +145,7 @@ exe = EXE(
     a.scripts,
     [],
     exclude_binaries=True,
-    name='carmenda-deduce-engine',
+    name='deidentify-engine',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
@@ -158,4 +160,4 @@ exe = EXE(
     entitlements_file=None,
 )
 
-coll = COLLECT(exe, a.binaries, a.datas, strip=False, upx=False, upx_exclude=[], name='carmenda-deduce-engine')
+coll = COLLECT(exe, a.binaries, a.datas, strip=False, upx=False, upx_exclude=[], name='deidentify-engine')
