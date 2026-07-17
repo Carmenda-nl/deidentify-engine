@@ -1,0 +1,25 @@
+# GitHub Actions workflow
+# This workflow prepares the stable version before merging develop into main.
+# It strips the -beta suffix from _version.py and CHANGELOG.md on develop.
+#
+# Triggered on:
+#   - PULL REQUEST from develop to main is approved
+
+name: Prepare stable version
+
+on:
+  pull_request_review:
+    types: [submitted]
+
+permissions:
+  contents: write
+
+jobs:
+  prepare-stable-version:
+    if: >
+      github.event.review.state == 'approved' &&
+      github.event.pull_request.base.ref == 'main' &&
+      github.event.pull_request.head.ref == 'develop'
+    uses: Carmenda-nl/carmenda-workflows/.github/workflows/python-prepare-stable.yml@main
+    with:
+      version-file: app/main/_version.py

@@ -3,4 +3,4 @@
 # This program is distributed under the terms of the PolyForm Noncommercial License 1.0.0          #
 # ------------------------------------------------------------------------------------------------ #
 
-__version__ = 'v0.0.1-beta'
+__version__ = 'v1.0.0-beta'
