@@ -1,0 +1,27 @@
+# GitHub Actions workflow
+# This workflow builds a pre-release when a new beta tag is pushed.
+# The build artifact is uploaded to the created beta release.
+#
+# Triggered on:
+#   - PUSH of tags matching v*-beta
+
+name: Beta release
+
+on:
+  push:
+    tags:
+      - "v*-beta"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    uses: Carmenda-nl/carmenda-workflows/.github/workflows/python-release-beta.yml@main
+    with:
+      working-directory: app
+      build-output-name: carmenda-deduce-engine
+      artifact-name: carmenda-deduce-engine
+      zip-prefix: carmenda_deduce_engine_win
+      version-file: app/main/_version.py
+    secrets: inherit
