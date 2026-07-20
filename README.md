@@ -192,3 +192,10 @@ python run.py
 ```
 
 The API will be available at `http://127.0.0.1:8002/`
+
+### Step 5: Testing with Bruno
+
+There is no committed [Bruno](https://www.usebruno.com/) collection — generate one via
+**Import Collection → OpenAPI**, using the running server's `/openapi.json` (requires `DEBUG=True`,
+e.g. `http://127.0.0.1:8001/openapi.json`). Afterwards, add a `local` environment with a `baseUrl`
+variable pointing at `http://127.0.0.1:8001`.
