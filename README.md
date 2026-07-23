@@ -11,12 +11,9 @@
 
 **Deidentify engine** is an engine designed to pseudonymize textual data for care organizations.
 
-This engine leverages the **[Deduce](https://github.com/vmenger/deduce)** algorithm **[1]**
+This engine leverages the **[Deidentify](https://github.com/nedap/deidentify)** algorithm
 to effectively mask sensitive information, ensuring compliance with data privacy regulations.  
 Built with **Polars** for enhanced performance, it provides a scalable API for handling large datasets efficiently.
-
-**[1]** _Menger, V.J., Scheepers, F., van Wijk, L.M., Spruit, M. (2017). DEDUCE: A pattern matching method for automatic
-de-identification of Dutch medical text, Telematics and Informatics, 2017, ISSN 0736-5853_
 
 ## Features
 
