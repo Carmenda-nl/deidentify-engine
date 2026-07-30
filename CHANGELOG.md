@@ -46,7 +46,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Deidentify pandas warning not silenced
 - Long progress updates fixed
 
-## [v0.0.1-beta] - 2026-07-14
+## [v0.0.1] - 2026-07-14
 
 ### Initial Release
 
