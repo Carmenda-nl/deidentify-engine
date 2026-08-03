@@ -20,6 +20,8 @@ jobs:
     uses: Carmenda-nl/carmenda-workflows/.github/workflows/python-release-beta.yml@main
     with:
       working-directory: app
-      build-name: deidentify-engine
+      build-output-name: deidentify-engine
+      artifact-name: deidentify-engine
+      zip-prefix: carmenda_deduce_engine_win
       version-file: app/main/_version.py
     secrets: inherit
