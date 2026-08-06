@@ -3,6 +3,13 @@
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.4] - 2026-08-04
+
+### Fixed
+
+- Double run on workflow
+- Version still reports beta after promoting to stable
+
 ## [1.0.3] - 2026-08-03
 
 ### Fixed
