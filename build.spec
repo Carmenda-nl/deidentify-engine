@@ -38,6 +38,7 @@ excluded_items = {
     'pytest',
     'pyproject.toml',
     'Makefile',
+    'models',
 }
 
 for root, dirs, files in os.walk(app_path):
@@ -57,6 +58,22 @@ datas = [
     for source, dest in datas
     if not (isinstance(source, str) and ('__pycache__' in source or '.pyc' in source))
 ]
+
+# Bundle the deidentify model in the application
+models_path = app_path / 'core' / 'deidentify' / 'models'
+model_name = 'model_bilstmcrf_ons_fast-v0.2.0'
+model_file = models_path / model_name / 'final-model.pt'
+
+if not model_file.exists():
+    import shutil
+    from deidentify.taggers.base import cached_model_file
+
+    cached_path = cached_model_file(model_name)
+    model_file.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(cached_path, model_file)
+
+if models_path.exists():
+    datas.append((models_path, 'models'))
 
 binaries = []
 
