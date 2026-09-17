@@ -102,7 +102,7 @@ class DeidentifyHandler:
 
         return mask_annotations(annotated_doc, replacement_formatter=replacement_formatter).text
 
-    def _deidentify_batch(self, batch: pl.Series) -> pl.Series:
+    def _deidentify_batch(self, batch: pl.Series, **_kwargs: object) -> pl.Series:
         """Annotate and mask a batch of report texts in chunks, while tracking progress per chunk."""
         rows = batch.to_list()
         results = ['' for _ in rows]
