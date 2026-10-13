@@ -147,8 +147,8 @@ class ProgressTracker:
         self.check_cancelled()
         progress_stages: dict[str, tuple] = {
             'start': ('start', 0),
-            'file_loaded': ('file loaded', 5),
-            'init_model': ('initializing model', 10),
+            'init_model': ('initializing model', 5),
+            'file_loaded': ('file loaded', 10),
             'done': ('done', 100),
         }
 

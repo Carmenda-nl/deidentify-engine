@@ -32,7 +32,7 @@ class DeidentifyHandler:
     """Handler class for de-identification operations."""
 
     def __init__(self, tracker: ProgressTracker) -> None:
-        """Initialize the handler. The deidentify tagger is loaded lazily on first use."""
+        """Initialize the handler. The deidentify tagger is loaded by `load_model` (or on first use)."""
         self.tracker = tracker
         self.instance_manager = DeidentifyInstanceManager()
 
@@ -70,10 +70,9 @@ class DeidentifyHandler:
         ]
         return df.with_columns(replaced_synonyms)
 
-    def _get_tagger(self) -> FlairTagger:
-        """Lazily fetch the FlairTagger, loaded once per job."""
+    def load_model(self) -> FlairTagger:
+        """Fetch the FlairTagger, loaded once per job."""
         if self._tagger is None:
-            self.tracker.set_progress('init_model')
             self._tagger = self.instance_manager.create_instance()
 
         return self._tagger
@@ -88,7 +87,7 @@ class DeidentifyHandler:
 
     def _annotate_batch(self, report_texts: list[str]) -> list[Document]:
         """Annotate multiple reports in a single tagger call, so Flair can batch internally."""
-        tagger = self._get_tagger()
+        tagger = self.load_model()
         documents = [Document(name=str(index), text=text) for index, text in enumerate(report_texts)]
         return tagger.annotate(documents)
 
