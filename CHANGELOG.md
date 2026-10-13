@@ -9,7 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Remove datakey processing from engine
 
-## [1.0.6-beta] - 2026-09-10
+### Fixed
+
+- Model init not measured [LVD-356]
+
+## [1.0.6] - 2026-09-10
 
 ### Fixed
 
