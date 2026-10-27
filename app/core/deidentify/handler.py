@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import logging
 import re
-from functools import reduce
+from functools import cache, reduce
 from typing import TYPE_CHECKING
 
 import polars as pl
@@ -28,16 +28,21 @@ if TYPE_CHECKING:
 logger = setup_logging()
 
 
+@cache
+def load_models() -> FlairTagger:
+    """Load the FlairTagger once per engine process."""
+    return DeidentifyInstanceManager().create_instance()
+
+
 class DeidentifyHandler:
     """Handler class for de-identification operations."""
 
     def __init__(self, tracker: ProgressTracker) -> None:
-        """Initialize the handler. The deidentify tagger is loaded by `load_model` (or on first use)."""
+        """Initialize the handler with the (preloaded) deidentify tagger."""
         self.tracker = tracker
-        self.instance_manager = DeidentifyInstanceManager()
 
-        # Lazily loaded/cached FlairTagger.
-        self._tagger: FlairTagger | None = None
+        self.tracker.set_progress('init_model')
+        self.load_model()
 
         # For debug logging of de-identification results
         self.processed_reports: list[dict[str, str]] = []
@@ -71,11 +76,8 @@ class DeidentifyHandler:
         return df.with_columns(replaced_synonyms)
 
     def load_model(self) -> FlairTagger:
-        """Fetch the FlairTagger, loaded once per job."""
-        if self._tagger is None:
-            self._tagger = self.instance_manager.create_instance()
-
-        return self._tagger
+        """Fetch the FlairTagger, loaded once per engine process."""
+        return load_models()
 
     def _is_patient_name(self, annotation_text: str, clientname: str | None) -> bool:
         """Check whether a Name annotation refers to the client."""
@@ -197,10 +199,16 @@ class DeidentifyHandler:
             .select('clientcode', pl.all().exclude('clientcode'))
         )
 
+        missing_names = df.filter(pl.col('clientcode').is_null()).get_column(clientname_col).drop_nulls().n_unique()
+        if missing_names:
+            logger.warning('%d clientname(s) not found in datakey', missing_names)
+
         processed_cols = [col for col in df.columns if col.startswith('processed_report_')]
         return df.with_columns(
             [
-                pl.col(col).str.replace_all(r'\[PATIENT\]', pl.format('[{}]', pl.col('clientcode')))
+                pl.col(col).str.replace_all(
+                    r'\[PATIENT\]', pl.format('[{}]', pl.col('clientcode')).fill_null('[PATIENT]')
+                )
                 for col in processed_cols
             ],
         )
