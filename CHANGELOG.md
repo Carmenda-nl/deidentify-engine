@@ -8,10 +8,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Remove datakey processing from engine
+- Preload model & slim down metrics in api return
+- UV update packages
 
 ### Fixed
 
 - Model init not measured [LVD-356]
+- Ignoring clientname column when no datakey
 
 ## [1.0.6] - 2026-09-10
 
