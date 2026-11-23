@@ -26,11 +26,11 @@ build = [
 ]
 
 dev = [
-    'mypy>=1.19.1',
     'pandas-stubs>=2.2.2.240807',
     'pytest>=8.4.2',
     'pytest-cov>=7.0.0',
     'ruff>=0.15.0',
+    'ty>=0.0.107',
 ]
 
 [tool.setuptools.packages.find]
@@ -75,10 +75,6 @@ directory = 'pytest/html'
 
 [tool.coverage.xml]
 output = 'pytest/coverage.xml'
-
-[[tool.mypy.overrides]]
-module = 'deidentify.*'
-ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 python_files = ['tests.py', 'test_*.py', '*_tests.py']
